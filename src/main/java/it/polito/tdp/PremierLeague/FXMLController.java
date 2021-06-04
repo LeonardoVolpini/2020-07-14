@@ -5,9 +5,13 @@
 package it.polito.tdp.PremierLeague;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import it.polito.tdp.PremierLeague.model.Model;
+import it.polito.tdp.PremierLeague.model.SquadraMigliore;
+import it.polito.tdp.PremierLeague.model.SquadraPeggiore;
+import it.polito.tdp.PremierLeague.model.Team;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,7 +39,7 @@ public class FXMLController {
     private Button btnSimula; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbSquadra"
-    private ComboBox<?> cmbSquadra; // Value injected by FXMLLoader
+    private ComboBox<Team> cmbSquadra; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtN"
     private TextField txtN; // Value injected by FXMLLoader
@@ -48,17 +52,64 @@ public class FXMLController {
 
     @FXML
     void doClassifica(ActionEvent event) {
-
+    	this.txtResult.clear();
+    	if (!model.isGrafoCreato()) {
+    		this.txtResult.setText("Errore, creare prima il grafo");
+    		return;
+    	}
+    	Team team = this.cmbSquadra.getValue();
+    	if (team==null) {
+    		this.txtResult.setText("Errore, selezionare una squadra");
+    		return;
+    	}
+    	List<SquadraPeggiore> r1=model.SquadreBattute(team);
+    	List<SquadraMigliore> r2=model.SquadreCheBattono(team);
+    	this.txtResult.appendText("Squadre arrivate sotto "+team.toString()+":\n");
+    	for (SquadraPeggiore t : r1) {
+    		this.txtResult.appendText(t.getT().toString()+" - "+t.getPeso()+"\n");
+    	}
+    	this.txtResult.appendText("\n");
+    	this.txtResult.appendText("Squadre arrivate sopra "+team.toString()+":\n");
+    	for (SquadraMigliore t : r2) {
+    		this.txtResult.appendText(t.getT().toString()+" - "+t.getPeso()+"\n");
+    	}
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
-    }
+    	this.txtResult.clear();
+    	model.CreaGrafo();
+    	this.txtResult.setText("GRAFO CREATO \n");
+    	this.txtResult.appendText("# Vertici: "+model.getNumVertici());
+    	this.txtResult.appendText("\n # Archi: "+model.getNumArchi());
+    	}
 
     @FXML
     void doSimula(ActionEvent event) {
-
+    	this.txtResult.clear();
+    	if(!model.isGrafoCreato()) {
+    		this.txtResult.setText("Errore, crea prima il grafo !!");
+    		return;
+    	}
+    	String nString= this.txtN.getText();
+    	int n;
+    	try {
+    		n= Integer.parseInt(nString);
+    	} catch(NumberFormatException e) {
+    		this.txtResult.setText("Errore inserire un valore numerico di reporter");
+    		return;
+    	}
+    	String xString= this.txtX.getText();
+    	int x;
+    	try {
+    		x= Integer.parseInt(xString);
+    	} catch(NumberFormatException e) {
+    		this.txtResult.setText("Errore inserire un valore numerico della soglia dei reporter");
+    		return;
+    	}
+    	this.model.simula(n, x);
+    	this.txtResult.setText("In media c'erano "+model.reporterForMatch()+" per partita\n");
+    	this.txtResult.appendText("E ci sono state "+model.matchUnderSogliaX()+" partite con meno reporter della soglia minima");
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -74,5 +125,6 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.cmbSquadra.getItems().addAll(model.getAllTeams());
     }
 }
