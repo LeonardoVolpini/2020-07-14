@@ -15,12 +15,14 @@ public class Event implements Comparable<Event> {
 	private LocalDateTime data;
 	private EventType type;
 	private Match match;
+	private Team team;
 	
-	public Event(LocalDateTime data, EventType type, Match match) {
+	public Event(LocalDateTime data, EventType type, Match match,Team team) {
 		super();
 		this.data = data;
 		this.type = type;
 		this.match = match;
+		this.team = team;
 	}
 
 	public LocalDateTime getData() {
@@ -45,6 +47,14 @@ public class Event implements Comparable<Event> {
 
 	public void setMatch(Match match) {
 		this.match = match;
+	}
+
+	public Team getTeam() {
+		return team;
+	}
+
+	public void setTeam(Team team) {
+		this.team = team;
 	}
 
 	@Override

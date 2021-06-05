@@ -56,7 +56,7 @@ public class Simulator {
 		while (inseriti!=this.allMatches.size()) {
 			
 			Match m = allMatches.get(inseriti);
-			Event e = new Event (m.getDate(),EventType.PREMATCH,m);
+			Event e = new Event (m.getDate(),EventType.PREMATCH,m,null);
 			this.queue.add(e);
 			inseriti++;
 		}
@@ -82,48 +82,64 @@ public class Simulator {
 			if (repor<this.soglia) 
 				this.numMatchUnderX++;
 			if (match.getResultOfTeamHome()==1) {
-				queue.add( new Event(data,EventType.VITTORIA,match) );
+				queue.add( new Event(data,EventType.VITTORIA,match,t1) ); //vittoria per t1
+				queue.add( new Event(data,EventType.SCONFITTA,match,t2) ); //sconfitta per t2
 			}
 			else if (match.getResultOfTeamHome()==-1) {
-				queue.add( new Event(data,EventType.SCONFITTA,match) );
+				queue.add( new Event(data,EventType.SCONFITTA,match,t1) ); //sconfitta per t1
+				queue.add( new Event(data,EventType.VITTORIA,match,t2) ); //vittoria per t2
 			}
 			break;
 		case VITTORIA:
-			if(this.reporterPerTeam.get(t1)!=0) {
-				for (int i=1; i<=this.reporterPerTeam.get(t1) ; i++) {
-					int prob= (int)(Math.random()*100);
-					if (prob<50) {
-						queue.add( new Event(data,EventType.PROMOZIONE,match) );
-					}
+			Team teamV= e.getTeam();
+			if(this.reporterPerTeam.get(teamV)!=0) {
+				int prob= (int)(Math.random()*100);
+				if (prob<50) {
+					//int rep= (int)(Math.random()*this.reporterPerTeam.get(t1)); //scelgo un reporter a caso
+					queue.add( new Event(data,EventType.PROMOZIONE,match,teamV) );
 				}
 			}
+					/*for (int i=1; i<=this.reporterPerTeam.get(t2) ; i++) {
+						int prob= (int)(Math.random()*100);
+						if (prob<50) {
+							queue.add( new Event(data,EventType.PROMOZIONE,match) );
+						}
+					}*/
 			break;
 		case SCONFITTA:
-			if(this.reporterPerTeam.get(t2)!=0) {
-				for (int i=1; i<=this.reporterPerTeam.get(t2) ; i++) {
-					int prob= (int)(Math.random()*100);
-					if (prob<20) {
-						queue.add( new Event(data,EventType.BOCCIATURA,match) );
-					}
+			Team teamS= e.getTeam();
+			if(this.reporterPerTeam.get(teamS)!=0) {
+				int prob= (int)(Math.random()*100);
+				if (prob<20) {
+					queue.add( new Event(data,EventType.BOCCIATURA,match,teamS) );
 				}
 			}
+					/*for (int i=1; i<=this.reporterPerTeam.get(t2) ; i++) {
+						int prob= (int)(Math.random()*100);
+						if (prob<20) {
+							queue.add( new Event(data,EventType.BOCCIATURA,match) );
+						}
+					}*/
 			break;
 		case PROMOZIONE:
-			List<SquadraMigliore> migliori= new ArrayList<>(this.SquadreCheBattono(t1));
+			Team teamP= e.getTeam();
+			List<SquadraMigliore> migliori= new ArrayList<>(this.SquadreCheBattono(teamP));
 			if (!migliori.isEmpty()) {
 				int sq= (int)(Math.random()*migliori.size());
-				this.reporterPerTeam.put(t1, this.reporterPerTeam.get(t1)-1); //diminusico i reporter del team che ha vinto
+				this.reporterPerTeam.put(teamP, this.reporterPerTeam.get(teamP)-1); //diminusico i reporter del team che ha vinto
 				Team daMigliorare = migliori.get(sq).getT();
 				this.reporterPerTeam.put(daMigliorare, this.reporterPerTeam.get(daMigliorare)+1); //aumento i reporter di un team a caso tra i migliori
 			}
 			break;
 		case BOCCIATURA:
-			List<SquadraPeggiore> peggiori= new ArrayList<>(this.SquadreBattute(t2));
+			Team teamB= e.getTeam();
+			List<SquadraPeggiore> peggiori= new ArrayList<>(this.SquadreBattute(teamB));
 			if (!peggiori.isEmpty()) {
 				int sq= (int)(Math.random()*peggiori.size());
-				this.reporterPerTeam.put(t2, this.reporterPerTeam.get(t2)-1); //diminusico i reporter del team che ha perso
+				int nRep= (int)(Math.random()*this.reporterPerTeam.get(teamB));
+				this.reporterPerTeam.put(teamB, this.reporterPerTeam.get(teamB)-nRep); //diminusico i reporter del team che ha perso
 				Team daMigliorare = peggiori.get(sq).getT();
-				this.reporterPerTeam.put(daMigliorare, this.reporterPerTeam.get(daMigliorare)+1); //aumento i reporter di un team a caso tra i peggiori
+				this.reporterPerTeam.put(daMigliorare, this.reporterPerTeam.get(daMigliorare)+nRep); //aumento i reporter di un team a caso tra i peggiori
 			}
 			break;
 		}
